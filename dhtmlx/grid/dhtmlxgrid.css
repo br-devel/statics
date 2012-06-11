@@ -1,0 +1,270 @@
+div.gridbox{
+	overflow:hidden;
+	text-align:left;
+}
+.dhx_sub_row
+{
+	background-color:white;
+}
+div.gridbox .xhdr{
+	background-color:#D4D0C8;
+}
+
+div.gridbox table.hdr td {
+	font-family:arial;
+	font-size:12px;
+	background-Color:#D4D0C8;
+	border: 1px solid;
+	border-color : white Gray Gray white;
+	text-align: left;
+	margin:0px;
+	padding:5px 0px 5px 0px ;
+	font-weight:normal;
+	-moz-user-select:none;    
+	-moz-user-select:-moz-none;    
+    overflow:hidden;
+    empty-cells:show;
+	}
+div.gridbox table.hdr td div.hdrcell{
+	overflow:hidden;
+}
+div.gridbox table.obj td {
+	border: 1px solid;
+	border-color : white Gray Gray white;
+	font-family:Arial;
+	font-size:12px;
+    -moz-user-select:none;
+    -moz-user-select:-moz-none;   
+    overflow:hidden;
+    padding-top:0px;
+    padding-bottom:0px;
+    empty-cells:show;
+    vertical-align:middle;
+	}
+div.gridbox table.obj th, div.gridbox table.hdr th{
+	padding:0px 0px 0px 0px ;
+	margin:0px 0px 0px 0px ;
+	}
+
+div.gridbox table.row20px tr  td{
+    height:20px;
+    white-space: nowrap;
+    padding:0px;
+}
+div.gridbox .objbox {
+	background-color:white;
+	position:relative;
+	}
+div.gridbox table.obj td span.space, div.gridbox table.obj td img.space{
+	width:18px;
+	}
+div.gridbox table.obj tr.rowselected td.cellselected, div.gridbox table.obj td.cellselected {
+	background-color:#d8d8d8;
+	color:black;
+	}
+div.gridbox table.obj tr.rowselected td{
+	background-color:#e1e0d7;
+	color:black;
+	}
+div.gridbox table.obj td.editable{
+    -moz-user-select:text;
+    }
+div.gridbox table.obj td.group_row{
+    vertical-align:middle; font-family:Tahoma; font-size:10pt; font-weight:bold; height:30px;  border:0px;  border-bottom: 2px solid navy; 
+    }    
+
+.dragSpanDiv{ 	font-size : 12px; 	border: 1px gray solid; background-color:white; z-index:999; }
+.dhx_combo_select{
+    font-family:arial;
+    font-size:12px;
+    border:1px solid;
+    border-color:black silver silver black;
+    background-color:white;
+    overflow:hidden;
+    cursor:default;
+    position:absolute;
+    height:auto;
+    z-index:600;
+}
+.dhx_combo_edit{
+    width:100%;
+    border:0px;
+    padding:0px;
+    padding-right:1px !ie;
+    margin:0px;
+    font:12px arial;
+    overflow:hidden;
+}
+
+.dhx_textarea{
+    border:1px solid;
+    border-color:black silver silver black;
+    position:absolute;
+	height:100px;
+	z-index:600;
+}
+.dhx_clist{
+    background-color:white;
+    border:1px solid black;
+    padding:2px 2px 2px 2px;
+    z-index:300;
+}
+.gridDragLine{
+   position:absolute;
+   top:10px; left:0px;
+   width:100%;
+   height:2px;
+   background-color:black;
+   overflow:hidden;
+}
+
+/*paginal output*/
+div.pagingBlock{
+	font-size:12px;
+	font-family:verdana,arial;
+}
+div.pagingBlock .pagingCurrentPage{
+	font-weight:bold;
+	cursor:default;
+}
+div.pagingBlock .pagingPage{
+	cursor:pointer;
+	text-decoration:underline;
+}
+span.recordsInfoBlock {
+	font-size:12px;
+	font-family:verdana,arial;
+}
+div.pagingBlock a{
+	text-decoration:none;
+	padding-right:2px;
+	color:black;
+	cursor:pointer;
+}
+div.pagingBlock a.dhx_not_active{
+	text-decoration:none;
+	cursor:default;
+}
+/*class for toolbar selectbox. used with pagingWT*/
+.toolbar_select{
+	font-size:10px;
+}
+
+/*block selection style*/
+.dhtmlxGrid_selection {
+   -moz-opacity: 0.5;
+   filter: alpha(opacity = 50);
+   background-color:yellow;
+   opacity:0.5;
+   border: 1px dotted black;
+}
+
+/* xp skin ------------------------------------------------------*/
+div.gridbox_xp table.obj tr.rowselected td, 
+div.gridbox_xp table.obj tr:hover, 
+div.gridbox_xp .odd_xp:hover {
+    background: #FFF url(../../../cp/template/default/images/table_tr_background.gif) repeat;
+}
+
+.odd_xp { background: #f6f6f6; }
+
+div.gridbox_xp{
+	border:1px solid lightgrey;
+}
+div.gridbox_xp .xhdr{
+	background-image:url('../../../cp/template/default/images/gradient_silver.gif');
+}
+div.gridbox_xp table.hdr td {
+	color:#616161;
+	background-image:url('../../../cp/template/default/images/gradient_silver.gif');
+	border:0px;
+    border-bottom: 1px solid #CCC;
+	margin:0px;
+	padding: 0px;
+    height: 27px;
+	font-weight:bold;
+    -moz-user-select:none;
+    -moz-user-select:-moz-none;    
+    overflow:hidden;
+    border-right: 1px solid #ccc;
+}
+div.gridbox_xp table.hdr td div.hdrcell{
+	/* border-left: 1px solid white; */
+	/* border-right: 1px solid #ccc;*/
+	/* height:16px; */
+	white-space : nowrap;
+	font-family:Arial;
+	font-size:12px;
+    padding-left: 10px;
+}
+div.gridbox_xp table.obj td {
+	border:0px;
+	border-bottom: 1px solid lightgrey;
+	border-right: 1px solid lightgrey;
+	font-family:Arial;
+	font-size:12px;
+    -moz-user-select:none;
+    -moz-user-select:-moz-none;    
+    overflow:hidden;
+    padding-top:0px;
+    padding-bottom:0px;
+	vertical-align:middle;
+	}
+div.gridbox_xp table.obj tr.rowselected td{
+	background-color:whitesmoke;
+	color:black;
+	}
+div.gridbox_xp table.obj tr.rowselected td.cellselected, div.gridbox table.obj td.cellselected {
+	background-color:whitesmoke;
+	}
+div.gridbox_xp table.row20px tr  td{
+    height:30px;
+    white-space: nowrap;
+    padding:0 0 0 10px;
+}
+
+div.gridbox div.ftr{
+  position:absolute;
+  left:0px;
+  bottom:1px;
+  width:100%;
+  overflow:hidden;
+}
+
+div.gridbox div.ftr td {
+		padding:0px;
+		padding-left:10px;
+		padding-right:5px;
+		border-top:1px solid gray;
+		border-right:1px solid gray;
+		background-color:#ffffcc;
+		font-style : italic;
+		font-family:arial;
+		font-size:12px;
+		overflow:hidden;
+	}
+
+div.gridbox table.hdr td.columnTargetR div.hdrcell{
+	border-right:3px double #FF6600;
+	border-left:3px solid #D4D0C8;
+}
+
+div.gridbox table.hdr td.columnTargetL div.hdrcell{
+	border-right:3px solid #D4D0C8;
+	border-left:3px double #FF6600;
+}
+
+.dhx_dragColDiv{
+	font-family:Arial;
+	font-size:12px;
+	background-color:#D4D0C8;
+	border: 1px solid;
+	border-color : white Gray Gray white;
+	text-align: center;
+	margin:0px;
+	padding:5px 20px 5px 20px ;
+	font-weight:normal;
+	filter:alpha(opacity:75);
+	-moz-opacity:0.75;
+	opacity:0.75;
+}
