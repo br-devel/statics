@@ -87,7 +87,6 @@
 			var err = this;
 			var input = $(err.input);
 			$.tools.validator.twRemoveValidationMarkup(input);
-			alert(err.messages);
 			$.tools.validator.twAddValidationMarkup(input, 'error', err.messages.join(' '));
 		});
 		return false;
