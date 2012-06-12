@@ -138,7 +138,7 @@ class FCKeditor
 
 		$this->Config		= array() ;
         if(PMD_SECTION == 'members') { 
-            $this->Config['CustomConfigurationsPath'] = BASE_URL.'/includes/statics/FCKEditor/fckconfig_limited.js';
+            $this->Config['CustomConfigurationsPath'] = BASE_URL.'/statics/FCKEditor/fckconfig_limited.js';
         }
         
         //$this->Config['UsersFilePath'] = BASE_URL.TEMP_UPLOAD_PATH;
