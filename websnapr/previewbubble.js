@@ -7,7 +7,7 @@
 
 
 // Point this variable to the correct location of the bg.png file
-var bubbleImagePath = './includes/statics/websnapr/bg.png';
+var bubbleImagePath = '/statics/websnapr/bg.png';
 
 // Insert your WebSnapr developer key here - get it free on www.websnapr.com
 var developerKey = '';

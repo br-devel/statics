@@ -499,7 +499,7 @@
 })(jQuery);
 
 
-$.blockUI.defaults.message = '<img src="/includes/jquery/ajax-loader-big.gif" />';
-$.blockUI.defaults.messageSmall = '<img src="/includes/jquery/ajax-loader-small.gif" />';
+$.blockUI.defaults.message = '<img src="/statics/jquery/ajax-loader-big.gif" />';
+$.blockUI.defaults.messageSmall = '<img src="/statics/jquery/ajax-loader-small.gif" />';
 $.blockUI.defaults.css = {};
 $.blockUI.defaults.overlayCSS = {};
