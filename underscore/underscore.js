@@ -961,11 +961,11 @@
 		// Compile the template source, taking care to escape characters that
 		// cannot be included in a string literal and then unescape them in code
 		// blocks.
-		var source = "__p+='" + text.replace(escaper, function (match) {
-					return '\\' + escapes[match];
-				}).replace(settings.escape || noMatch, function (match, code) {
+		var source = "__p+='" + text.replace(escaper,function (match) {
+			return '\\' + escapes[match];
+		}).replace(settings.escape || noMatch,function (match, code) {
 					return "'+\n_.escape(" + unescape(code) + ")+\n'";
-				}).replace(settings.interpolate || noMatch, function (match, code) {
+				}).replace(settings.interpolate || noMatch,function (match, code) {
 					return "'+\n(" + unescape(code) + ")+\n'";
 				}).replace(settings.evaluate || noMatch, function (match, code) {
 					return "';\n" + unescape(code) + "\n;__p+='";
@@ -1061,11 +1061,56 @@
 //EXTRAS
 
 _.mixin({
-	cleanAllButNumbers : function(t) {
+	cleanAllButNumbers:function (t) {
 		if (!t || !_.isString(t)) {
 			return t;
 		}
 
 		return t.replace(/[^\d]/g, '');
+	},
+	rewrite:function (text, validchars, separator) {
+		var str = "";
+		var i;
+		var exp_reg = new RegExp("[" + validchars + separator + "]");
+		var exp_reg_space = new RegExp("[ ]");
+		text.toString();
+		for (i = 0; i < text.length; i++) {
+			if (exp_reg.test(text.charAt(i))) {
+				str = str + text.charAt(i);
+			} else {
+				if (exp_reg_space.test(text.charAt(i))) {
+					if (str.charAt(str.length - 1) != separator) {
+						str = str + separator;
+					}
+				}
+			}
+		}
+		if (str.charAt(str.length - 1) == separator) str = str.substr(0, str.length - 1);
+		return str.toLowerCase();
+	},
+	newWindow:function (mypage, myname, w, h, features) {
+		if (screen.width) {
+			var winl = (screen.width - w) / 2;
+			var wint = (screen.height - h) / 2;
+		} else {
+			winl = 0;
+			wint = 0;
+		}
+
+		if (winl < 0) winl = 0;
+		if (wint < 0) wint = 0;
+
+		var settings = 'height=' + h + ',';
+		settings += 'width=' + w + ',';
+		settings += 'top=' + wint + ',';
+		settings += 'left=' + winl + ',';
+		settings += features;
+		settings += ' scrollbars=yes ';
+
+		var win = window.open(mypage, myname, settings);
+
+		win.window.focus();
 	}
+
+
 });
