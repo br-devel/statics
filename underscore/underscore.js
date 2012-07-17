@@ -1070,62 +1070,48 @@ _.mixin({
 	},
 	rewrite:function (text) {
 
-		function normaliseUrl (url) {
-			var preserveNormalForm = /[,_`;\':-]+/gi
-			url = url.replace(preserveNormalForm, ' ');
+		var normalize = (function() {
+			var from = "ÃÀÁÄÂÈÉËÊÌÍÏÎÒÓÖÔÙÚÜÛãàáäâèéëêìíïîòóöôùúüûÑñÇç",
+					to   = "AAAAAEEEEIIIIOOOOUUUUaaaaaeeeeiiiioooouuuunncc",
+					mapping = {};
 
-			// strip accents
-			url = stripVowelAccent(url);
+			for(var i = 0, j = from.length; i < j; i++ )
+				mapping[ from.charAt( i ) ] = to.charAt( i );
 
-			//remove all special chars
-			url = url.replace(/[^a-z|^0-9|^-|\s]/gi, '').trim();
+			return function( str ) {
+				var ret = [];
+				for( var i = 0, j = str.length; i < j; i++ ) {
+					var c = str.charAt( i );
+					if( mapping.hasOwnProperty( str.charAt( i ) ) )
+						ret.push( mapping[ c ] );
+					else
+						ret.push( c );
+				}
+				return ret.join( '' );
+			}
 
-			//replace spaces with a -
-			url = url.replace(/\s+/gi, '-');
-			return url;
+		})();
+
+		text = normalize(text.toString());
+
+		var str = "";
+		var i;
+		var exp_reg = new RegExp("[" + validchars + separator + "]");
+		var exp_reg_space = new RegExp("[ ]");
+		text.toString();
+		for (i = 0; i < text.length; i++) {
+			if (exp_reg.test(text.charAt(i))) {
+				str = str + text.charAt(i);
+			} else {
+				if (exp_reg_space.test(text.charAt(i))) {
+					if (str.charAt(str.length - 1) != separator) {
+						str = str + separator;
+					}
+				}
+			}
 		}
-
-		function stripVowelAccent(str) {
-			var rExps = [{ re: /[\xC0-\xC6]/g, ch: 'A' },
-				{ re: /[\xE0-\xE6]/g, ch: 'a' },
-				{ re: /[\xC8-\xCB]/g, ch: 'E' },
-				{ re: /[\xE8-\xEB]/g, ch: 'e' },
-				{ re: /[\xCC-\xCF]/g, ch: 'I' },
-				{ re: /[\xEC-\xEF]/g, ch: 'i' },
-				{ re: /[\xD2-\xD6]/g, ch: 'O' },
-				{ re: /[\xF2-\xF6]/g, ch: 'o' },
-				{ re: /[\xD9-\xDC]/g, ch: 'U' },
-				{ re: /[\xF9-\xFC]/g, ch: 'u' },
-				{ re: /[\xD1]/g, ch: 'N' },
-				{ re: /[\xF1]/g, ch: 'n'}];
-
-			for (var i = 0, len = rExps.length; i < len; i++)
-				str = str.replace(rExps[i].re, rExps[i].ch);
-
-			return str;
-		}
-
-		return normaliseUrl(text);
-
-//
-//		var str = "";
-//		var i;
-//		var exp_reg = new RegExp("[" + validchars + separator + "]");
-//		var exp_reg_space = new RegExp("[ ]");
-//		text.toString();
-//		for (i = 0; i < text.length; i++) {
-//			if (exp_reg.test(text.charAt(i))) {
-//				str = str + text.charAt(i);
-//			} else {
-//				if (exp_reg_space.test(text.charAt(i))) {
-//					if (str.charAt(str.length - 1) != separator) {
-//						str = str + separator;
-//					}
-//				}
-//			}
-//		}
-//		if (str.charAt(str.length - 1) == separator) str = str.substr(0, str.length - 1);
-//		return str.toLowerCase();
+		if (str.charAt(str.length - 1) == separator) str = str.substr(0, str.length - 1);
+		return str.toLowerCase();
 	},
 	newWindow:function (mypage, myname, w, h, features) {
 		if (screen.width) {
