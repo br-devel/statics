@@ -1,0 +1,3 @@
+[submodule "labjs"]
+	path = labjs
+	url = git@github.com:getify/LABjs
