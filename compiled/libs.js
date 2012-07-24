@@ -9,7 +9,7 @@
 
 var _BR = _.isObject(window['_BR']) ? window['_BR'] : {};
 
-_BR.changeMetricas = function () {
+_BR.runMetricas = function () {
 	//change and execute Metricas
 	window._metricas = window._metricas || [];
 
@@ -45,7 +45,7 @@ _BR.changeMetricas = function () {
 }
 
 
-_BR.changePreloads = function () {
+_BR.runPreloads = function () {
 	//change and execute Metricas
 	window._preloads = window._preloads || [];
 
