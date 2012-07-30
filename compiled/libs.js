@@ -6,6 +6,7 @@
 //@codekit-prepend "../jquery/jquery.base64.js";
 //@codekit-prepend "../jquery/jquery.cookie.js";
 //@codekit-prepend "../jquery/jquery.selectboxes.js";
+//@codekit-prepend "../js/md5.js";
 
 var _BR = _.isObject(window['_BR']) ? window['_BR'] : {};
 
@@ -78,5 +79,35 @@ _BR.runPreloads = function () {
 		return Array.prototype.push.apply(this, arguments);
 	}
 
+}
+
+_BR.getScriptPreloadeds = function () {
+	//change and execute Metricas
+	window._preloads = window._preloads || [];
+	var params = [];
+	for (var i in window._preloads) {
+		if (window._preloads.hasOwnProperty(i)) {
+			var x = window._preloads[i];
+			try {
+				params.push(x);
+			} catch (exc) {
+				try {
+					console.log('error get script preloadeds ' + exc.message);
+				} catch (exc2) {
+					//
+				}
+
+			}
+		}
+	}
+
+	if(_.size(params)){
+		var jsonParams = $.toJSON(params);
+		var md5Params = md5(jsonParams);
+		var queryStringParams = $.param({_loads:params});
+		return _ENV.BASE_URL + "/scripts/gen/" + md5Params + ".js?" + queryStringParams;
+	} else {
+		return false;
+	}
 }
 
