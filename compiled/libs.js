@@ -17,6 +17,9 @@
 //@codekit-prepend "../jquery/ui/jquery.ui.datepicker-es.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.autocomplete.js";
 
+//@codekit-prepend "../jquery/ui_multiselect/ui.multiselect.js";
+//@codekit-prepend "../jquery/ui_multiselect/ui-multiselect-es.js";
+
 
 var _BR = _.isObject(window['_BR']) ? window['_BR'] : {};
 
