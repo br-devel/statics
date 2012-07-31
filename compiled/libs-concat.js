@@ -16080,7 +16080,7 @@ window['DP_jQuery_' + dpuuid] = $;
 /* Inicialización en español para la extensión 'UI date picker' para jQuery. */
 /* Traducido por Vester (xvester@gmail.com). */
 /* Modificado por eturino (eturino@gmail.com). */
-jQuery(function($){
+//jQuery(function($){ //cargamos ahora
 	$.datepicker.regional['es'] = {
 		closeText: 'Cerrar',
 		prevText: '&#x3c;',
@@ -16101,7 +16101,7 @@ jQuery(function($){
 		showMonthAfterYear: false,
 		yearSuffix: ''};
 	$.datepicker.setDefaults($.datepicker.regional['es']);
-});
+//});
 
 /*********************************************** 
      Begin jquery.ui.autocomplete.js 
