@@ -26,7 +26,7 @@ _BR.getScriptPreloadeds = function () {
 			}
 		}
 	}
-alert(params);
+	
 	if (params.length > 0) {
 		var queryStringParams = '';
 		var first = true;
