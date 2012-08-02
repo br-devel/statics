@@ -2,25 +2,11 @@
 //@codekit-prepend "../toolbox/toolbox.js";
 //@codekit-prepend "../jquery/jquery.js";
 //@codekit-prepend "../jquery/jquery.json.js";
-//@codekit-prepend "../jquery/jquery.blockUI.js";
-//@codekit-prepend "../jquery/jquery.ba-bbq.js";
-//@codekit-prepend "../jquery/jquery.base64.js";
 //@codekit-prepend "../jquery/jquery.cookie.js";
+//@codekit-prepend "../jquery/jquery.base64.js";
+//@codekit-prepend "../jquery/jquery.ba-bbq.js";
+//@codekit-prepend "../jquery/jquery.blockUI.js";
 //@codekit-prepend "../jquery/jquery.selectboxes.js";
-
-//jquery UI
-
-//@codekit-prepend "../jquery/ui/jquery.ui.core.js";
-//@codekit-prepend "../jquery/ui/jquery.ui.widget.js";
-//@codekit-prepend "../jquery/ui/jquery.ui.position.js";
-//@codekit-prepend "../jquery/ui/jquery.ui.tabs.js";
-//@codekit-prepend "../jquery/ui/jquery.ui.datepicker.js";
-//@codekit-prepend "../jquery/ui/jquery.ui.datepicker-es.js";
-//@codekit-prepend "../jquery/ui/jquery.ui.autocomplete.js";
-
-//@codekit-prepend "../jquery/ui_multiselect/ui.multiselect.js";
-//@codekit-prepend "../jquery/ui_multiselect/ui-multiselect-es.js";
-
 
 var _BR = (window['_BR'] === Object(window['_BR'])) ? window['_BR'] : {};
 
