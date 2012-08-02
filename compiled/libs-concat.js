@@ -10889,6 +10889,517 @@ _.mixin({
 
 
 /*********************************************** 
+     Begin jquery.blockUI.js 
+***********************************************/ 
+
+/*!
+ * jQuery blockUI plugin
+ * Version 2.39 (23-MAY-2011)
+ * @requires jQuery v1.2.3 or later
+ *
+ * Examples at: http://malsup.com/jquery/block/
+ * Copyright (c) 2007-2010 M. Alsup
+ * Dual licensed under the MIT and GPL licenses:
+ * http://www.opensource.org/licenses/mit-license.php
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * Thanks to Amir-Hossein Sobhi for some excellent contributions!
+ */
+
+;(function($) {
+
+	if (/1\.(0|1|2)\.(0|1|2)/.test($.fn.jquery) || /^1.1/.test($.fn.jquery)) {
+		alert('blockUI requires jQuery v1.2.3 or later!  You are using v' + $.fn.jquery);
+		return;
+	}
+
+	$.fn._fadeIn = $.fn.fadeIn;
+
+	var noOp = function() {};
+
+// this bit is to ensure we don't call setExpression when we shouldn't (with extra muscle to handle
+// retarded userAgent strings on Vista)
+	var mode = document.documentMode || 0;
+	var setExpr = $.browser.msie && (($.browser.version < 8 && !mode) || mode < 8);
+	var ie6 = $.browser.msie && /MSIE 6.0/.test(navigator.userAgent) && !mode;
+
+// global $ methods for blocking/unblocking the entire page
+	$.blockUI   = function(opts) { install(window, opts); };
+	$.unblockUI = function(opts) { remove(window, opts); };
+
+// convenience method for quick growl-like notifications  (http://www.google.com/search?q=growl)
+	$.growlUI = function(title, message, timeout, onClose) {
+		var $m = $('<div class="growlUI"></div>');
+		if (title) $m.append('<h1>'+title+'</h1>');
+		if (message) $m.append('<h2>'+message+'</h2>');
+		if (timeout == undefined) timeout = 3000;
+		$.blockUI({
+			message: $m, fadeIn: 700, fadeOut: 1000, centerY: false,
+			timeout: timeout, showOverlay: false,
+			onUnblock: onClose,
+			css: $.blockUI.defaults.growlCSS
+		});
+	};
+
+// plugin method for blocking element content
+	$.fn.block = function(opts) {
+		return this.unblock({ fadeOut: 0 }).each(function() {
+			if ($.css(this,'position') == 'static')
+				this.style.position = 'relative';
+			if ($.browser.msie)
+				this.style.zoom = 1; // force 'hasLayout'
+			install(this, opts);
+		});
+	};
+
+// plugin method for unblocking element content
+	$.fn.unblock = function(opts) {
+		return this.each(function() {
+			remove(this, opts);
+		});
+	};
+
+	$.blockUI.version = 2.39; // 2nd generation blocking at no extra cost!
+
+// override these in your code to change the default behavior and style
+	$.blockUI.defaults = {
+		// message displayed when blocking (use null for no message)
+		message:  '<h1>Please wait...</h1>',
+
+		title: null,	  // title string; only used when theme == true
+		draggable: true,  // only used when theme == true (requires jquery-ui.js to be loaded)
+
+		theme: false, // set to true to use with jQuery UI themes
+
+		// styles for the message when blocking; if you wish to disable
+		// these and use an external stylesheet then do this in your code:
+		// $.blockUI.defaults.css = {};
+		css: {
+			padding:	0,
+			margin:		0,
+			width:		'30%',
+			top:		'40%',
+			left:		'35%',
+			textAlign:	'center',
+			color:		'#000',
+			border:		'3px solid #aaa',
+			backgroundColor:'#fff',
+			cursor:		'wait'
+		},
+
+		// minimal style set used when themes are used
+		themedCSS: {
+			width:	'30%',
+			top:	'40%',
+			left:	'35%'
+		},
+
+		// styles for the overlay
+		overlayCSS:  {
+			backgroundColor: '#000',
+			opacity:	  	 0.6,
+			cursor:		  	 'wait'
+		},
+
+		// styles applied when using $.growlUI
+		growlCSS: {
+			width:  	'350px',
+			top:		'10px',
+			left:   	'',
+			right:  	'10px',
+			border: 	'none',
+			padding:	'5px',
+			opacity:	0.6,
+			cursor: 	'default',
+			color:		'#fff',
+			backgroundColor: '#000',
+			'-webkit-border-radius': '10px',
+			'-moz-border-radius':	 '10px',
+			'border-radius': 		 '10px'
+		},
+
+		// IE issues: 'about:blank' fails on HTTPS and javascript:false is s-l-o-w
+		// (hat tip to Jorge H. N. de Vasconcelos)
+		iframeSrc: /^https/i.test(window.location.href || '') ? 'javascript:false' : 'about:blank',
+
+		// force usage of iframe in non-IE browsers (handy for blocking applets)
+		forceIframe: false,
+
+		// z-index for the blocking overlay
+		baseZ: 1000,
+
+		// set these to true to have the message automatically centered
+		centerX: true, // <-- only effects element blocking (page block controlled via css above)
+		centerY: true,
+
+		// allow body element to be stetched in ie6; this makes blocking look better
+		// on "short" pages.  disable if you wish to prevent changes to the body height
+		allowBodyStretch: true,
+
+		// enable if you want key and mouse events to be disabled for content that is blocked
+		bindEvents: true,
+
+		// be default blockUI will supress tab navigation from leaving blocking content
+		// (if bindEvents is true)
+		constrainTabKey: true,
+
+		// fadeIn time in millis; set to 0 to disable fadeIn on block
+		fadeIn:  200,
+
+		// fadeOut time in millis; set to 0 to disable fadeOut on unblock
+		fadeOut:  400,
+
+		// time in millis to wait before auto-unblocking; set to 0 to disable auto-unblock
+		timeout: 0,
+
+		// disable if you don't want to show the overlay
+		showOverlay: true,
+
+		// if true, focus will be placed in the first available input field when
+		// page blocking
+		focusInput: true,
+
+		// suppresses the use of overlay styles on FF/Linux (due to performance issues with opacity)
+		applyPlatformOpacityRules: true,
+
+		// callback method invoked when fadeIn has completed and blocking message is visible
+		onBlock: null,
+
+		// callback method invoked when unblocking has completed; the callback is
+		// passed the element that has been unblocked (which is the window object for page
+		// blocks) and the options that were passed to the unblock call:
+		//	 onUnblock(element, options)
+		onUnblock: null,
+
+		// don't ask; if you really must know: http://groups.google.com/group/jquery-en/browse_thread/thread/36640a8730503595/2f6a79a77a78e493#2f6a79a77a78e493
+		quirksmodeOffsetHack: 4,
+
+		// class name of the message block
+		blockMsgClass: 'blockMsg'
+	};
+
+// private data and functions follow...
+
+	var pageBlock = null;
+	var pageBlockEls = [];
+
+	function install(el, opts) {
+		var full = (el == window);
+		var msg = opts && opts.message !== undefined ? opts.message : undefined;
+		opts = $.extend({}, $.blockUI.defaults, opts || {});
+		opts.overlayCSS = $.extend({}, $.blockUI.defaults.overlayCSS, opts.overlayCSS || {});
+		var css = $.extend({}, $.blockUI.defaults.css, opts.css || {});
+		var themedCSS = $.extend({}, $.blockUI.defaults.themedCSS, opts.themedCSS || {});
+		msg = msg === undefined ? opts.message : msg;
+
+		// remove the current block (if there is one)
+		if (full && pageBlock)
+			remove(window, {fadeOut:0});
+
+		// if an existing element is being used as the blocking content then we capture
+		// its current place in the DOM (and current display style) so we can restore
+		// it when we unblock
+		if (msg && typeof msg != 'string' && (msg.parentNode || msg.jquery)) {
+			var node = msg.jquery ? msg[0] : msg;
+			var data = {};
+			$(el).data('blockUI.history', data);
+			data.el = node;
+			data.parent = node.parentNode;
+			data.display = node.style.display;
+			data.position = node.style.position;
+			if (data.parent)
+				data.parent.removeChild(node);
+		}
+
+		$(el).data('blockUI.onUnblock', opts.onUnblock);
+		var z = opts.baseZ;
+
+		// blockUI uses 3 layers for blocking, for simplicity they are all used on every platform;
+		// layer1 is the iframe layer which is used to supress bleed through of underlying content
+		// layer2 is the overlay layer which has opacity and a wait cursor (by default)
+		// layer3 is the message content that is displayed while blocking
+
+		var lyr1 = ($.browser.msie || opts.forceIframe)
+				? $('<iframe class="blockUI" style="z-index:'+ (z++) +';display:none;border:none;margin:0;padding:0;position:absolute;width:100%;height:100%;top:0;left:0" src="'+opts.iframeSrc+'"></iframe>')
+				: $('<div class="blockUI" style="display:none"></div>');
+
+		var lyr2 = opts.theme
+				? $('<div class="blockUI blockOverlay ui-widget-overlay" style="z-index:'+ (z++) +';display:none"></div>')
+				: $('<div class="blockUI blockOverlay" style="z-index:'+ (z++) +';display:none;border:none;margin:0;padding:0;width:100%;height:100%;top:0;left:0"></div>');
+
+		var lyr3, s;
+		if (opts.theme && full) {
+			s = '<div class="blockUI ' + opts.blockMsgClass + ' blockPage ui-dialog ui-widget ui-corner-all" style="z-index:'+(z+10)+';display:none;position:fixed">' +
+					'<div class="ui-widget-header ui-dialog-titlebar ui-corner-all blockTitle">'+(opts.title || '&nbsp;')+'</div>' +
+					'<div class="ui-widget-content ui-dialog-content"></div>' +
+					'</div>';
+		}
+		else if (opts.theme) {
+			s = '<div class="blockUI ' + opts.blockMsgClass + ' blockElement ui-dialog ui-widget ui-corner-all" style="z-index:'+(z+10)+';display:none;position:absolute">' +
+					'<div class="ui-widget-header ui-dialog-titlebar ui-corner-all blockTitle">'+(opts.title || '&nbsp;')+'</div>' +
+					'<div class="ui-widget-content ui-dialog-content"></div>' +
+					'</div>';
+		}
+		else if (full) {
+			s = '<div class="blockUI ' + opts.blockMsgClass + ' blockPage" style="z-index:'+(z+10)+';display:none;position:fixed"></div>';
+		}
+		else {
+			s = '<div class="blockUI ' + opts.blockMsgClass + ' blockElement" style="z-index:'+(z+10)+';display:none;position:absolute"></div>';
+		}
+		lyr3 = $(s);
+
+		// if we have a message, style it
+		if (msg) {
+			if (opts.theme) {
+				lyr3.css(themedCSS);
+				lyr3.addClass('ui-widget-content');
+			}
+			else
+				lyr3.css(css);
+		}
+
+		// style the overlay
+		if (!opts.theme && (!opts.applyPlatformOpacityRules || !($.browser.mozilla && /Linux/.test(navigator.platform))))
+			lyr2.css(opts.overlayCSS);
+		lyr2.css('position', full ? 'fixed' : 'absolute');
+
+		// make iframe layer transparent in IE
+		if ($.browser.msie || opts.forceIframe)
+			lyr1.css('opacity',0.0);
+
+		//$([lyr1[0],lyr2[0],lyr3[0]]).appendTo(full ? 'body' : el);
+		var layers = [lyr1,lyr2,lyr3], $par = full ? $('body') : $(el);
+		$.each(layers, function() {
+			this.appendTo($par);
+		});
+
+		if (opts.theme && opts.draggable && $.fn.draggable) {
+			lyr3.draggable({
+				handle: '.ui-dialog-titlebar',
+				cancel: 'li'
+			});
+		}
+
+		// ie7 must use absolute positioning in quirks mode and to account for activex issues (when scrolling)
+		var expr = setExpr && (!$.boxModel || $('object,embed', full ? null : el).length > 0);
+		if (ie6 || expr) {
+			// give body 100% height
+			if (full && opts.allowBodyStretch && $.boxModel)
+				$('html,body').css('height','100%');
+
+			// fix ie6 issue when blocked element has a border width
+			if ((ie6 || !$.boxModel) && !full) {
+				var t = sz(el,'borderTopWidth'), l = sz(el,'borderLeftWidth');
+				var fixT = t ? '(0 - '+t+')' : 0;
+				var fixL = l ? '(0 - '+l+')' : 0;
+			}
+
+			// simulate fixed position
+			$.each([lyr1,lyr2,lyr3], function(i,o) {
+				var s = o[0].style;
+				s.position = 'absolute';
+				if (i < 2) {
+					full ? s.setExpression('height','Math.max(document.body.scrollHeight, document.body.offsetHeight) - (jQuery.boxModel?0:'+opts.quirksmodeOffsetHack+') + "px"')
+							: s.setExpression('height','this.parentNode.offsetHeight + "px"');
+					full ? s.setExpression('width','jQuery.boxModel && document.documentElement.clientWidth || document.body.clientWidth + "px"')
+							: s.setExpression('width','this.parentNode.offsetWidth + "px"');
+					if (fixL) s.setExpression('left', fixL);
+					if (fixT) s.setExpression('top', fixT);
+				}
+				else if (opts.centerY) {
+					if (full) s.setExpression('top','(document.documentElement.clientHeight || document.body.clientHeight) / 2 - (this.offsetHeight / 2) + (blah = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop) + "px"');
+					s.marginTop = 0;
+				}
+				else if (!opts.centerY && full) {
+					var top = (opts.css && opts.css.top) ? parseInt(opts.css.top) : 0;
+					var expression = '((document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop) + '+top+') + "px"';
+					s.setExpression('top',expression);
+				}
+			});
+		}
+
+		// show the message
+		if (msg) {
+			if (opts.theme)
+				lyr3.find('.ui-widget-content').append(msg);
+			else
+				lyr3.append(msg);
+			if (msg.jquery || msg.nodeType)
+				$(msg).show();
+		}
+
+		if (($.browser.msie || opts.forceIframe) && opts.showOverlay)
+			lyr1.show(); // opacity is zero
+		if (opts.fadeIn) {
+			var cb = opts.onBlock ? opts.onBlock : noOp;
+			var cb1 = (opts.showOverlay && !msg) ? cb : noOp;
+			var cb2 = msg ? cb : noOp;
+			if (opts.showOverlay)
+				lyr2._fadeIn(opts.fadeIn, cb1);
+			if (msg)
+				lyr3._fadeIn(opts.fadeIn, cb2);
+		}
+		else {
+			if (opts.showOverlay)
+				lyr2.show();
+			if (msg)
+				lyr3.show();
+			if (opts.onBlock)
+				opts.onBlock();
+		}
+
+		// bind key and mouse events
+		bind(1, el, opts);
+
+		if (full) {
+			pageBlock = lyr3[0];
+			pageBlockEls = $(':input:enabled:visible',pageBlock);
+			if (opts.focusInput)
+				setTimeout(focus, 20);
+		}
+		else
+			center(lyr3[0], opts.centerX, opts.centerY);
+
+		if (opts.timeout) {
+			// auto-unblock
+			var to = setTimeout(function() {
+				full ? $.unblockUI(opts) : $(el).unblock(opts);
+			}, opts.timeout);
+			$(el).data('blockUI.timeout', to);
+		}
+	};
+
+// remove the block
+	function remove(el, opts) {
+		var full = (el == window);
+		var $el = $(el);
+		var data = $el.data('blockUI.history');
+		var to = $el.data('blockUI.timeout');
+		if (to) {
+			clearTimeout(to);
+			$el.removeData('blockUI.timeout');
+		}
+		opts = $.extend({}, $.blockUI.defaults, opts || {});
+		bind(0, el, opts); // unbind events
+
+		if (opts.onUnblock === null) {
+			opts.onUnblock = $el.data('blockUI.onUnblock');
+			$el.removeData('blockUI.onUnblock');
+		}
+
+		var els;
+		if (full) // crazy selector to handle odd field errors in ie6/7
+			els = $('body').children().filter('.blockUI').add('body > .blockUI');
+		else
+			els = $('.blockUI', el);
+
+		if (full)
+			pageBlock = pageBlockEls = null;
+
+		if (opts.fadeOut) {
+			els.fadeOut(opts.fadeOut);
+			setTimeout(function() { reset(els,data,opts,el); }, opts.fadeOut);
+		}
+		else
+			reset(els, data, opts, el);
+	};
+
+// move blocking element back into the DOM where it started
+	function reset(els,data,opts,el) {
+		els.each(function(i,o) {
+			// remove via DOM calls so we don't lose event handlers
+			if (this.parentNode)
+				this.parentNode.removeChild(this);
+		});
+
+		if (data && data.el) {
+			data.el.style.display = data.display;
+			data.el.style.position = data.position;
+			if (data.parent)
+				data.parent.appendChild(data.el);
+			$(el).removeData('blockUI.history');
+		}
+
+		if (typeof opts.onUnblock == 'function')
+			opts.onUnblock(el,opts);
+	};
+
+// bind/unbind the handler
+	function bind(b, el, opts) {
+		var full = el == window, $el = $(el);
+
+		// don't bother unbinding if there is nothing to unbind
+		if (!b && (full && !pageBlock || !full && !$el.data('blockUI.isBlocked')))
+			return;
+		if (!full)
+			$el.data('blockUI.isBlocked', b);
+
+		// don't bind events when overlay is not in use or if bindEvents is false
+		if (!opts.bindEvents || (b && !opts.showOverlay))
+			return;
+
+		// bind anchors and inputs for mouse and key events
+		var events = 'mousedown mouseup keydown keypress';
+		b ? $(document).bind(events, opts, handler) : $(document).unbind(events, handler);
+
+// former impl...
+//	   var $e = $('a,:input');
+//	   b ? $e.bind(events, opts, handler) : $e.unbind(events, handler);
+	};
+
+// event handler to suppress keyboard/mouse events when blocking
+	function handler(e) {
+		// allow tab navigation (conditionally)
+		if (e.keyCode && e.keyCode == 9) {
+			if (pageBlock && e.data.constrainTabKey) {
+				var els = pageBlockEls;
+				var fwd = !e.shiftKey && e.target === els[els.length-1];
+				var back = e.shiftKey && e.target === els[0];
+				if (fwd || back) {
+					setTimeout(function(){focus(back)},10);
+					return false;
+				}
+			}
+		}
+		var opts = e.data;
+		// allow events within the message content
+		if ($(e.target).parents('div.' + opts.blockMsgClass).length > 0)
+			return true;
+
+		// allow events for content that is not being blocked
+		return $(e.target).parents().children().filter('div.blockUI').length == 0;
+	};
+
+	function focus(back) {
+		if (!pageBlockEls)
+			return;
+		var e = pageBlockEls[back===true ? pageBlockEls.length-1 : 0];
+		if (e)
+			e.focus();
+	};
+
+	function center(el, x, y) {
+		var p = el.parentNode, s = el.style;
+		var l = ((p.offsetWidth - el.offsetWidth)/2) - sz(p,'borderLeftWidth');
+		var t = ((p.offsetHeight - el.offsetHeight)/2) - sz(p,'borderTopWidth');
+		if (x) s.left = l > 0 ? (l+'px') : '0';
+		if (y) s.top  = t > 0 ? (t+'px') : '0';
+	};
+
+	function sz(el, p) {
+		return parseInt($.css(el,p))||0;
+	};
+
+})(jQuery);
+
+
+$.blockUI.defaults.message = '<img src="/statics/jquery/ajax-loader-big.gif" />';
+$.blockUI.defaults.messageSmall = '<img src="/statics/jquery/ajax-loader-small.gif" />';
+$.blockUI.defaults.css = {};
+$.blockUI.defaults.overlayCSS = {};
+
+
+/*********************************************** 
      Begin jquery.ba-bbq.js 
 ***********************************************/ 
 
@@ -13090,190 +13601,6 @@ jQuery.base64 = ( function( $ ) {
 })(jQuery);
 
 /*********************************************** 
-     Begin md5.js 
-***********************************************/ 
-
-// http://www.myersdaily.org/joseph/javascript/md5-text.html
-function md5cycle(x, k) {
-	var a = x[0], b = x[1], c = x[2], d = x[3];
-
-	a = ff(a, b, c, d, k[0], 7, -680876936);
-	d = ff(d, a, b, c, k[1], 12, -389564586);
-	c = ff(c, d, a, b, k[2], 17, 606105819);
-	b = ff(b, c, d, a, k[3], 22, -1044525330);
-	a = ff(a, b, c, d, k[4], 7, -176418897);
-	d = ff(d, a, b, c, k[5], 12, 1200080426);
-	c = ff(c, d, a, b, k[6], 17, -1473231341);
-	b = ff(b, c, d, a, k[7], 22, -45705983);
-	a = ff(a, b, c, d, k[8], 7, 1770035416);
-	d = ff(d, a, b, c, k[9], 12, -1958414417);
-	c = ff(c, d, a, b, k[10], 17, -42063);
-	b = ff(b, c, d, a, k[11], 22, -1990404162);
-	a = ff(a, b, c, d, k[12], 7, 1804603682);
-	d = ff(d, a, b, c, k[13], 12, -40341101);
-	c = ff(c, d, a, b, k[14], 17, -1502002290);
-	b = ff(b, c, d, a, k[15], 22, 1236535329);
-
-	a = gg(a, b, c, d, k[1], 5, -165796510);
-	d = gg(d, a, b, c, k[6], 9, -1069501632);
-	c = gg(c, d, a, b, k[11], 14, 643717713);
-	b = gg(b, c, d, a, k[0], 20, -373897302);
-	a = gg(a, b, c, d, k[5], 5, -701558691);
-	d = gg(d, a, b, c, k[10], 9, 38016083);
-	c = gg(c, d, a, b, k[15], 14, -660478335);
-	b = gg(b, c, d, a, k[4], 20, -405537848);
-	a = gg(a, b, c, d, k[9], 5, 568446438);
-	d = gg(d, a, b, c, k[14], 9, -1019803690);
-	c = gg(c, d, a, b, k[3], 14, -187363961);
-	b = gg(b, c, d, a, k[8], 20, 1163531501);
-	a = gg(a, b, c, d, k[13], 5, -1444681467);
-	d = gg(d, a, b, c, k[2], 9, -51403784);
-	c = gg(c, d, a, b, k[7], 14, 1735328473);
-	b = gg(b, c, d, a, k[12], 20, -1926607734);
-
-	a = hh(a, b, c, d, k[5], 4, -378558);
-	d = hh(d, a, b, c, k[8], 11, -2022574463);
-	c = hh(c, d, a, b, k[11], 16, 1839030562);
-	b = hh(b, c, d, a, k[14], 23, -35309556);
-	a = hh(a, b, c, d, k[1], 4, -1530992060);
-	d = hh(d, a, b, c, k[4], 11, 1272893353);
-	c = hh(c, d, a, b, k[7], 16, -155497632);
-	b = hh(b, c, d, a, k[10], 23, -1094730640);
-	a = hh(a, b, c, d, k[13], 4, 681279174);
-	d = hh(d, a, b, c, k[0], 11, -358537222);
-	c = hh(c, d, a, b, k[3], 16, -722521979);
-	b = hh(b, c, d, a, k[6], 23, 76029189);
-	a = hh(a, b, c, d, k[9], 4, -640364487);
-	d = hh(d, a, b, c, k[12], 11, -421815835);
-	c = hh(c, d, a, b, k[15], 16, 530742520);
-	b = hh(b, c, d, a, k[2], 23, -995338651);
-
-	a = ii(a, b, c, d, k[0], 6, -198630844);
-	d = ii(d, a, b, c, k[7], 10, 1126891415);
-	c = ii(c, d, a, b, k[14], 15, -1416354905);
-	b = ii(b, c, d, a, k[5], 21, -57434055);
-	a = ii(a, b, c, d, k[12], 6, 1700485571);
-	d = ii(d, a, b, c, k[3], 10, -1894986606);
-	c = ii(c, d, a, b, k[10], 15, -1051523);
-	b = ii(b, c, d, a, k[1], 21, -2054922799);
-	a = ii(a, b, c, d, k[8], 6, 1873313359);
-	d = ii(d, a, b, c, k[15], 10, -30611744);
-	c = ii(c, d, a, b, k[6], 15, -1560198380);
-	b = ii(b, c, d, a, k[13], 21, 1309151649);
-	a = ii(a, b, c, d, k[4], 6, -145523070);
-	d = ii(d, a, b, c, k[11], 10, -1120210379);
-	c = ii(c, d, a, b, k[2], 15, 718787259);
-	b = ii(b, c, d, a, k[9], 21, -343485551);
-
-	x[0] = add32(a, x[0]);
-	x[1] = add32(b, x[1]);
-	x[2] = add32(c, x[2]);
-	x[3] = add32(d, x[3]);
-
-}
-
-function cmn(q, a, b, x, s, t) {
-	a = add32(add32(a, q), add32(x, t));
-	return add32((a << s) | (a >>> (32 - s)), b);
-}
-
-function ff(a, b, c, d, x, s, t) {
-	return cmn((b & c) | ((~b) & d), a, b, x, s, t);
-}
-
-function gg(a, b, c, d, x, s, t) {
-	return cmn((b & d) | (c & (~d)), a, b, x, s, t);
-}
-
-function hh(a, b, c, d, x, s, t) {
-	return cmn(b ^ c ^ d, a, b, x, s, t);
-}
-
-function ii(a, b, c, d, x, s, t) {
-	return cmn(c ^ (b | (~d)), a, b, x, s, t);
-}
-
-function md51(s) {
-	txt = '';
-	var n = s.length, state = [1732584193, -271733879, -1732584194, 271733878], i;
-	for (i = 64; i <= s.length; i += 64) {
-		md5cycle(state, md5blk(s.substring(i - 64, i)));
-	}
-	s = s.substring(i - 64);
-	var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-	for (i = 0; i < s.length; i++)
-		tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
-	tail[i >> 2] |= 0x80 << ((i % 4) << 3);
-	if (i > 55) {
-		md5cycle(state, tail);
-		for (i = 0; i < 16; i++) tail[i] = 0;
-	}
-	tail[14] = n * 8;
-	md5cycle(state, tail);
-	return state;
-}
-
-/* there needs to be support for Unicode here,
- * unless we pretend that we can redefine the MD-5
- * algorithm for multi-byte characters (perhaps
- * by adding every four 16-bit characters and
- * shortening the sum to 32 bits). Otherwise
- * I suggest performing MD-5 as if every character
- * was two bytes--e.g., 0040 0025 = @%--but then
- * how will an ordinary MD-5 sum be matched?
- * There is no way to standardize text to something
- * like UTF-8 before transformation; speed cost is
- * utterly prohibitive. The JavaScript standard
- * itself needs to look at this: it should start
- * providing access to strings as preformed UTF-8
- * 8-bit unsigned value arrays.
- */
-function md5blk(s) { /* I figured global was faster.   */
-	var md5blks = [], i;
-	/* Andy King said do it this way. */
-	for (i = 0; i < 64; i += 4) {
-		md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
-	}
-	return md5blks;
-}
-
-var hex_chr = '0123456789abcdef'.split('');
-
-function rhex(n) {
-	var s = '', j = 0;
-	for (; j < 4; j++)
-		s += hex_chr[(n >> (j * 8 + 4)) & 0x0F] + hex_chr[(n >> (j * 8)) & 0x0F];
-	return s;
-}
-
-function hex(x) {
-	for (var i = 0; i < x.length; i++)
-		x[i] = rhex(x[i]);
-	return x.join('');
-}
-
-function md5(s) {
-	return hex(md51(s));
-}
-
-/* this function is much faster,
- so if possible we use it. Some IEs
- are the only ones I know of that
- need the idiotic second function,
- generated by an if clause.  */
-
-function add32(a, b) {
-	return (a + b) & 0xFFFFFFFF;
-}
-
-if (md5('hello') != '5d41402abc4b2a76b9719d911017c592') {
-	function add32(x, y) {
-		var lsw = (x & 0xFFFF) + (y & 0xFFFF), msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-		return (msw << 16) | (lsw & 0xFFFF);
-	}
-}
-
-/*********************************************** 
      Begin jquery.ui.core.js 
 ***********************************************/ 
 
@@ -14198,6 +14525,769 @@ if ( !$.offset.setOffset ) {
 })();
 
 }( jQuery ));
+
+
+/*********************************************** 
+     Begin jquery.ui.tabs.js 
+***********************************************/ 
+
+/*!
+ * jQuery UI Tabs 1.8.22
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Tabs
+ *
+ * Depends:
+ *	jquery.ui.core.js
+ *	jquery.ui.widget.js
+ */
+(function( $, undefined ) {
+
+var tabId = 0,
+	listId = 0;
+
+function getNextTabId() {
+	return ++tabId;
+}
+
+function getNextListId() {
+	return ++listId;
+}
+
+$.widget( "ui.tabs", {
+	options: {
+		add: null,
+		ajaxOptions: null,
+		cache: false,
+		cookie: null, // e.g. { expires: 7, path: '/', domain: 'jquery.com', secure: true }
+		collapsible: false,
+		disable: null,
+		disabled: [],
+		enable: null,
+		event: "click",
+		fx: null, // e.g. { height: 'toggle', opacity: 'toggle', duration: 200 }
+		idPrefix: "ui-tabs-",
+		load: null,
+		panelTemplate: "<div></div>",
+		remove: null,
+		select: null,
+		show: null,
+		spinner: "<em>Loading&#8230;</em>",
+		tabTemplate: "<li><a href='#{href}'><span>#{label}</span></a></li>"
+	},
+
+	_create: function() {
+		this._tabify( true );
+	},
+
+	_setOption: function( key, value ) {
+		if ( key == "selected" ) {
+			if (this.options.collapsible && value == this.options.selected ) {
+				return;
+			}
+			this.select( value );
+		} else {
+			this.options[ key ] = value;
+			this._tabify();
+		}
+	},
+
+	_tabId: function( a ) {
+		return a.title && a.title.replace( /\s/g, "_" ).replace( /[^\w\u00c0-\uFFFF-]/g, "" ) ||
+			this.options.idPrefix + getNextTabId();
+	},
+
+	_sanitizeSelector: function( hash ) {
+		// we need this because an id may contain a ":"
+		return hash.replace( /:/g, "\\:" );
+	},
+
+	_cookie: function() {
+		var cookie = this.cookie ||
+			( this.cookie = this.options.cookie.name || "ui-tabs-" + getNextListId() );
+		return $.cookie.apply( null, [ cookie ].concat( $.makeArray( arguments ) ) );
+	},
+
+	_ui: function( tab, panel ) {
+		return {
+			tab: tab,
+			panel: panel,
+			index: this.anchors.index( tab )
+		};
+	},
+
+	_cleanup: function() {
+		// restore all former loading tabs labels
+		this.lis.filter( ".ui-state-processing" )
+			.removeClass( "ui-state-processing" )
+			.find( "span:data(label.tabs)" )
+				.each(function() {
+					var el = $( this );
+					el.html( el.data( "label.tabs" ) ).removeData( "label.tabs" );
+				});
+	},
+
+	_tabify: function( init ) {
+		var self = this,
+			o = this.options,
+			fragmentId = /^#.+/; // Safari 2 reports '#' for an empty hash
+
+		this.list = this.element.find( "ol,ul" ).eq( 0 );
+		this.lis = $( " > li:has(a[href])", this.list );
+		this.anchors = this.lis.map(function() {
+			return $( "a", this )[ 0 ];
+		});
+		this.panels = $( [] );
+
+		this.anchors.each(function( i, a ) {
+			var href = $( a ).attr( "href" );
+			// For dynamically created HTML that contains a hash as href IE < 8 expands
+			// such href to the full page url with hash and then misinterprets tab as ajax.
+			// Same consideration applies for an added tab with a fragment identifier
+			// since a[href=#fragment-identifier] does unexpectedly not match.
+			// Thus normalize href attribute...
+			var hrefBase = href.split( "#" )[ 0 ],
+				baseEl;
+			if ( hrefBase && ( hrefBase === location.toString().split( "#" )[ 0 ] ||
+					( baseEl = $( "base" )[ 0 ]) && hrefBase === baseEl.href ) ) {
+				href = a.hash;
+				a.href = href;
+			}
+
+			// inline tab
+			if ( fragmentId.test( href ) ) {
+				self.panels = self.panels.add( self.element.find( self._sanitizeSelector( href ) ) );
+			// remote tab
+			// prevent loading the page itself if href is just "#"
+			} else if ( href && href !== "#" ) {
+				// required for restore on destroy
+				$.data( a, "href.tabs", href );
+
+				// TODO until #3808 is fixed strip fragment identifier from url
+				// (IE fails to load from such url)
+				$.data( a, "load.tabs", href.replace( /#.*$/, "" ) );
+
+				var id = self._tabId( a );
+				a.href = "#" + id;
+				var $panel = self.element.find( "#" + id );
+				if ( !$panel.length ) {
+					$panel = $( o.panelTemplate )
+						.attr( "id", id )
+						.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom" )
+						.insertAfter( self.panels[ i - 1 ] || self.list );
+					$panel.data( "destroy.tabs", true );
+				}
+				self.panels = self.panels.add( $panel );
+			// invalid tab href
+			} else {
+				o.disabled.push( i );
+			}
+		});
+
+		// initialization from scratch
+		if ( init ) {
+			// attach necessary classes for styling
+			this.element.addClass( "ui-tabs ui-widget ui-widget-content ui-corner-all" );
+			this.list.addClass( "ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" );
+			this.lis.addClass( "ui-state-default ui-corner-top" );
+			this.panels.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom" );
+
+			// Selected tab
+			// use "selected" option or try to retrieve:
+			// 1. from fragment identifier in url
+			// 2. from cookie
+			// 3. from selected class attribute on <li>
+			if ( o.selected === undefined ) {
+				if ( location.hash ) {
+					this.anchors.each(function( i, a ) {
+						if ( a.hash == location.hash ) {
+							o.selected = i;
+							return false;
+						}
+					});
+				}
+				if ( typeof o.selected !== "number" && o.cookie ) {
+					o.selected = parseInt( self._cookie(), 10 );
+				}
+				if ( typeof o.selected !== "number" && this.lis.filter( ".ui-tabs-selected" ).length ) {
+					o.selected = this.lis.index( this.lis.filter( ".ui-tabs-selected" ) );
+				}
+				o.selected = o.selected || ( this.lis.length ? 0 : -1 );
+			} else if ( o.selected === null ) { // usage of null is deprecated, TODO remove in next release
+				o.selected = -1;
+			}
+
+			// sanity check - default to first tab...
+			o.selected = ( ( o.selected >= 0 && this.anchors[ o.selected ] ) || o.selected < 0 )
+				? o.selected
+				: 0;
+
+			// Take disabling tabs via class attribute from HTML
+			// into account and update option properly.
+			// A selected tab cannot become disabled.
+			o.disabled = $.unique( o.disabled.concat(
+				$.map( this.lis.filter( ".ui-state-disabled" ), function( n, i ) {
+					return self.lis.index( n );
+				})
+			) ).sort();
+
+			if ( $.inArray( o.selected, o.disabled ) != -1 ) {
+				o.disabled.splice( $.inArray( o.selected, o.disabled ), 1 );
+			}
+
+			// highlight selected tab
+			this.panels.addClass( "ui-tabs-hide" );
+			this.lis.removeClass( "ui-tabs-selected ui-state-active" );
+			// check for length avoids error when initializing empty list
+			if ( o.selected >= 0 && this.anchors.length ) {
+				self.element.find( self._sanitizeSelector( self.anchors[ o.selected ].hash ) ).removeClass( "ui-tabs-hide" );
+				this.lis.eq( o.selected ).addClass( "ui-tabs-selected ui-state-active" );
+
+				// seems to be expected behavior that the show callback is fired
+				self.element.queue( "tabs", function() {
+					self._trigger( "show", null,
+						self._ui( self.anchors[ o.selected ], self.element.find( self._sanitizeSelector( self.anchors[ o.selected ].hash ) )[ 0 ] ) );
+				});
+
+				this.load( o.selected );
+			}
+
+			// clean up to avoid memory leaks in certain versions of IE 6
+			// TODO: namespace this event
+			$( window ).bind( "unload", function() {
+				self.lis.add( self.anchors ).unbind( ".tabs" );
+				self.lis = self.anchors = self.panels = null;
+			});
+		// update selected after add/remove
+		} else {
+			o.selected = this.lis.index( this.lis.filter( ".ui-tabs-selected" ) );
+		}
+
+		// update collapsible
+		// TODO: use .toggleClass()
+		this.element[ o.collapsible ? "addClass" : "removeClass" ]( "ui-tabs-collapsible" );
+
+		// set or update cookie after init and add/remove respectively
+		if ( o.cookie ) {
+			this._cookie( o.selected, o.cookie );
+		}
+
+		// disable tabs
+		for ( var i = 0, li; ( li = this.lis[ i ] ); i++ ) {
+			$( li )[ $.inArray( i, o.disabled ) != -1 &&
+				// TODO: use .toggleClass()
+				!$( li ).hasClass( "ui-tabs-selected" ) ? "addClass" : "removeClass" ]( "ui-state-disabled" );
+		}
+
+		// reset cache if switching from cached to not cached
+		if ( o.cache === false ) {
+			this.anchors.removeData( "cache.tabs" );
+		}
+
+		// remove all handlers before, tabify may run on existing tabs after add or option change
+		this.lis.add( this.anchors ).unbind( ".tabs" );
+
+		if ( o.event !== "mouseover" ) {
+			var addState = function( state, el ) {
+				if ( el.is( ":not(.ui-state-disabled)" ) ) {
+					el.addClass( "ui-state-" + state );
+				}
+			};
+			var removeState = function( state, el ) {
+				el.removeClass( "ui-state-" + state );
+			};
+			this.lis.bind( "mouseover.tabs" , function() {
+				addState( "hover", $( this ) );
+			});
+			this.lis.bind( "mouseout.tabs", function() {
+				removeState( "hover", $( this ) );
+			});
+			this.anchors.bind( "focus.tabs", function() {
+				addState( "focus", $( this ).closest( "li" ) );
+			});
+			this.anchors.bind( "blur.tabs", function() {
+				removeState( "focus", $( this ).closest( "li" ) );
+			});
+		}
+
+		// set up animations
+		var hideFx, showFx;
+		if ( o.fx ) {
+			if ( $.isArray( o.fx ) ) {
+				hideFx = o.fx[ 0 ];
+				showFx = o.fx[ 1 ];
+			} else {
+				hideFx = showFx = o.fx;
+			}
+		}
+
+		// Reset certain styles left over from animation
+		// and prevent IE's ClearType bug...
+		function resetStyle( $el, fx ) {
+			$el.css( "display", "" );
+			if ( !$.support.opacity && fx.opacity ) {
+				$el[ 0 ].style.removeAttribute( "filter" );
+			}
+		}
+
+		// Show a tab...
+		var showTab = showFx
+			? function( clicked, $show ) {
+				$( clicked ).closest( "li" ).addClass( "ui-tabs-selected ui-state-active" );
+				$show.hide().removeClass( "ui-tabs-hide" ) // avoid flicker that way
+					.animate( showFx, showFx.duration || "normal", function() {
+						resetStyle( $show, showFx );
+						self._trigger( "show", null, self._ui( clicked, $show[ 0 ] ) );
+					});
+			}
+			: function( clicked, $show ) {
+				$( clicked ).closest( "li" ).addClass( "ui-tabs-selected ui-state-active" );
+				$show.removeClass( "ui-tabs-hide" );
+				self._trigger( "show", null, self._ui( clicked, $show[ 0 ] ) );
+			};
+
+		// Hide a tab, $show is optional...
+		var hideTab = hideFx
+			? function( clicked, $hide ) {
+				$hide.animate( hideFx, hideFx.duration || "normal", function() {
+					self.lis.removeClass( "ui-tabs-selected ui-state-active" );
+					$hide.addClass( "ui-tabs-hide" );
+					resetStyle( $hide, hideFx );
+					self.element.dequeue( "tabs" );
+				});
+			}
+			: function( clicked, $hide, $show ) {
+				self.lis.removeClass( "ui-tabs-selected ui-state-active" );
+				$hide.addClass( "ui-tabs-hide" );
+				self.element.dequeue( "tabs" );
+			};
+
+		// attach tab event handler, unbind to avoid duplicates from former tabifying...
+		this.anchors.bind( o.event + ".tabs", function() {
+			var el = this,
+				$li = $(el).closest( "li" ),
+				$hide = self.panels.filter( ":not(.ui-tabs-hide)" ),
+				$show = self.element.find( self._sanitizeSelector( el.hash ) );
+
+			// If tab is already selected and not collapsible or tab disabled or
+			// or is already loading or click callback returns false stop here.
+			// Check if click handler returns false last so that it is not executed
+			// for a disabled or loading tab!
+			if ( ( $li.hasClass( "ui-tabs-selected" ) && !o.collapsible) ||
+				$li.hasClass( "ui-state-disabled" ) ||
+				$li.hasClass( "ui-state-processing" ) ||
+				self.panels.filter( ":animated" ).length ||
+				self._trigger( "select", null, self._ui( this, $show[ 0 ] ) ) === false ) {
+				this.blur();
+				return false;
+			}
+
+			o.selected = self.anchors.index( this );
+
+			self.abort();
+
+			// if tab may be closed
+			if ( o.collapsible ) {
+				if ( $li.hasClass( "ui-tabs-selected" ) ) {
+					o.selected = -1;
+
+					if ( o.cookie ) {
+						self._cookie( o.selected, o.cookie );
+					}
+
+					self.element.queue( "tabs", function() {
+						hideTab( el, $hide );
+					}).dequeue( "tabs" );
+
+					this.blur();
+					return false;
+				} else if ( !$hide.length ) {
+					if ( o.cookie ) {
+						self._cookie( o.selected, o.cookie );
+					}
+
+					self.element.queue( "tabs", function() {
+						showTab( el, $show );
+					});
+
+					// TODO make passing in node possible, see also http://dev.jqueryui.com/ticket/3171
+					self.load( self.anchors.index( this ) );
+
+					this.blur();
+					return false;
+				}
+			}
+
+			if ( o.cookie ) {
+				self._cookie( o.selected, o.cookie );
+			}
+
+			// show new tab
+			if ( $show.length ) {
+				if ( $hide.length ) {
+					self.element.queue( "tabs", function() {
+						hideTab( el, $hide );
+					});
+				}
+				self.element.queue( "tabs", function() {
+					showTab( el, $show );
+				});
+
+				self.load( self.anchors.index( this ) );
+			} else {
+				throw "jQuery UI Tabs: Mismatching fragment identifier.";
+			}
+
+			// Prevent IE from keeping other link focussed when using the back button
+			// and remove dotted border from clicked link. This is controlled via CSS
+			// in modern browsers; blur() removes focus from address bar in Firefox
+			// which can become a usability and annoying problem with tabs('rotate').
+			if ( $.browser.msie ) {
+				this.blur();
+			}
+		});
+
+		// disable click in any case
+		this.anchors.bind( "click.tabs", function(){
+			return false;
+		});
+	},
+
+    _getIndex: function( index ) {
+		// meta-function to give users option to provide a href string instead of a numerical index.
+		// also sanitizes numerical indexes to valid values.
+		if ( typeof index == "string" ) {
+			index = this.anchors.index( this.anchors.filter( "[href$='" + index + "']" ) );
+		}
+
+		return index;
+	},
+
+	destroy: function() {
+		var o = this.options;
+
+		this.abort();
+
+		this.element
+			.unbind( ".tabs" )
+			.removeClass( "ui-tabs ui-widget ui-widget-content ui-corner-all ui-tabs-collapsible" )
+			.removeData( "tabs" );
+
+		this.list.removeClass( "ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" );
+
+		this.anchors.each(function() {
+			var href = $.data( this, "href.tabs" );
+			if ( href ) {
+				this.href = href;
+			}
+			var $this = $( this ).unbind( ".tabs" );
+			$.each( [ "href", "load", "cache" ], function( i, prefix ) {
+				$this.removeData( prefix + ".tabs" );
+			});
+		});
+
+		this.lis.unbind( ".tabs" ).add( this.panels ).each(function() {
+			if ( $.data( this, "destroy.tabs" ) ) {
+				$( this ).remove();
+			} else {
+				$( this ).removeClass([
+					"ui-state-default",
+					"ui-corner-top",
+					"ui-tabs-selected",
+					"ui-state-active",
+					"ui-state-hover",
+					"ui-state-focus",
+					"ui-state-disabled",
+					"ui-tabs-panel",
+					"ui-widget-content",
+					"ui-corner-bottom",
+					"ui-tabs-hide"
+				].join( " " ) );
+			}
+		});
+
+		if ( o.cookie ) {
+			this._cookie( null, o.cookie );
+		}
+
+		return this;
+	},
+
+	add: function( url, label, index ) {
+		if ( index === undefined ) {
+			index = this.anchors.length;
+		}
+
+		var self = this,
+			o = this.options,
+			$li = $( o.tabTemplate.replace( /#\{href\}/g, url ).replace( /#\{label\}/g, label ) ),
+			id = !url.indexOf( "#" ) ? url.replace( "#", "" ) : this._tabId( $( "a", $li )[ 0 ] );
+
+		$li.addClass( "ui-state-default ui-corner-top" ).data( "destroy.tabs", true );
+
+		// try to find an existing element before creating a new one
+		var $panel = self.element.find( "#" + id );
+		if ( !$panel.length ) {
+			$panel = $( o.panelTemplate )
+				.attr( "id", id )
+				.data( "destroy.tabs", true );
+		}
+		$panel.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" );
+
+		if ( index >= this.lis.length ) {
+			$li.appendTo( this.list );
+			$panel.appendTo( this.list[ 0 ].parentNode );
+		} else {
+			$li.insertBefore( this.lis[ index ] );
+			$panel.insertBefore( this.panels[ index ] );
+		}
+
+		o.disabled = $.map( o.disabled, function( n, i ) {
+			return n >= index ? ++n : n;
+		});
+
+		this._tabify();
+
+		if ( this.anchors.length == 1 ) {
+			o.selected = 0;
+			$li.addClass( "ui-tabs-selected ui-state-active" );
+			$panel.removeClass( "ui-tabs-hide" );
+			this.element.queue( "tabs", function() {
+				self._trigger( "show", null, self._ui( self.anchors[ 0 ], self.panels[ 0 ] ) );
+			});
+
+			this.load( 0 );
+		}
+
+		this._trigger( "add", null, this._ui( this.anchors[ index ], this.panels[ index ] ) );
+		return this;
+	},
+
+	remove: function( index ) {
+		index = this._getIndex( index );
+		var o = this.options,
+			$li = this.lis.eq( index ).remove(),
+			$panel = this.panels.eq( index ).remove();
+
+		// If selected tab was removed focus tab to the right or
+		// in case the last tab was removed the tab to the left.
+		if ( $li.hasClass( "ui-tabs-selected" ) && this.anchors.length > 1) {
+			this.select( index + ( index + 1 < this.anchors.length ? 1 : -1 ) );
+		}
+
+		o.disabled = $.map(
+			$.grep( o.disabled, function(n, i) {
+				return n != index;
+			}),
+			function( n, i ) {
+				return n >= index ? --n : n;
+			});
+
+		this._tabify();
+
+		this._trigger( "remove", null, this._ui( $li.find( "a" )[ 0 ], $panel[ 0 ] ) );
+		return this;
+	},
+
+	enable: function( index ) {
+		index = this._getIndex( index );
+		var o = this.options;
+		if ( $.inArray( index, o.disabled ) == -1 ) {
+			return;
+		}
+
+		this.lis.eq( index ).removeClass( "ui-state-disabled" );
+		o.disabled = $.grep( o.disabled, function( n, i ) {
+			return n != index;
+		});
+
+		this._trigger( "enable", null, this._ui( this.anchors[ index ], this.panels[ index ] ) );
+		return this;
+	},
+
+	disable: function( index ) {
+		index = this._getIndex( index );
+		var self = this, o = this.options;
+		// cannot disable already selected tab
+		if ( index != o.selected ) {
+			this.lis.eq( index ).addClass( "ui-state-disabled" );
+
+			o.disabled.push( index );
+			o.disabled.sort();
+
+			this._trigger( "disable", null, this._ui( this.anchors[ index ], this.panels[ index ] ) );
+		}
+
+		return this;
+	},
+
+	select: function( index ) {
+		index = this._getIndex( index );
+		if ( index == -1 ) {
+			if ( this.options.collapsible && this.options.selected != -1 ) {
+				index = this.options.selected;
+			} else {
+				return this;
+			}
+		}
+		this.anchors.eq( index ).trigger( this.options.event + ".tabs" );
+		return this;
+	},
+
+	load: function( index ) {
+		index = this._getIndex( index );
+		var self = this,
+			o = this.options,
+			a = this.anchors.eq( index )[ 0 ],
+			url = $.data( a, "load.tabs" );
+
+		this.abort();
+
+		// not remote or from cache
+		if ( !url || this.element.queue( "tabs" ).length !== 0 && $.data( a, "cache.tabs" ) ) {
+			this.element.dequeue( "tabs" );
+			return;
+		}
+
+		// load remote from here on
+		this.lis.eq( index ).addClass( "ui-state-processing" );
+
+		if ( o.spinner ) {
+			var span = $( "span", a );
+			span.data( "label.tabs", span.html() ).html( o.spinner );
+		}
+
+		this.xhr = $.ajax( $.extend( {}, o.ajaxOptions, {
+			url: url,
+			success: function( r, s ) {
+				self.element.find( self._sanitizeSelector( a.hash ) ).html( r );
+
+				// take care of tab labels
+				self._cleanup();
+
+				if ( o.cache ) {
+					$.data( a, "cache.tabs", true );
+				}
+
+				self._trigger( "load", null, self._ui( self.anchors[ index ], self.panels[ index ] ) );
+				try {
+					o.ajaxOptions.success( r, s );
+				}
+				catch ( e ) {}
+			},
+			error: function( xhr, s, e ) {
+				// take care of tab labels
+				self._cleanup();
+
+				self._trigger( "load", null, self._ui( self.anchors[ index ], self.panels[ index ] ) );
+				try {
+					// Passing index avoid a race condition when this method is
+					// called after the user has selected another tab.
+					// Pass the anchor that initiated this request allows
+					// loadError to manipulate the tab content panel via $(a.hash)
+					o.ajaxOptions.error( xhr, s, index, a );
+				}
+				catch ( e ) {}
+			}
+		} ) );
+
+		// last, so that load event is fired before show...
+		self.element.dequeue( "tabs" );
+
+		return this;
+	},
+
+	abort: function() {
+		// stop possibly running animations
+		this.element.queue( [] );
+		this.panels.stop( false, true );
+
+		// "tabs" queue must not contain more than two elements,
+		// which are the callbacks for the latest clicked tab...
+		this.element.queue( "tabs", this.element.queue( "tabs" ).splice( -2, 2 ) );
+
+		// terminate pending requests from other tabs
+		if ( this.xhr ) {
+			this.xhr.abort();
+			delete this.xhr;
+		}
+
+		// take care of tab labels
+		this._cleanup();
+		return this;
+	},
+
+	url: function( index, url ) {
+		this.anchors.eq( index ).removeData( "cache.tabs" ).data( "load.tabs", url );
+		return this;
+	},
+
+	length: function() {
+		return this.anchors.length;
+	}
+});
+
+$.extend( $.ui.tabs, {
+	version: "1.8.22"
+});
+
+/*
+ * Tabs Extensions
+ */
+
+/*
+ * Rotate
+ */
+$.extend( $.ui.tabs.prototype, {
+	rotation: null,
+	rotate: function( ms, continuing ) {
+		var self = this,
+			o = this.options;
+
+		var rotate = self._rotate || ( self._rotate = function( e ) {
+			clearTimeout( self.rotation );
+			self.rotation = setTimeout(function() {
+				var t = o.selected;
+				self.select( ++t < self.anchors.length ? t : 0 );
+			}, ms );
+			
+			if ( e ) {
+				e.stopPropagation();
+			}
+		});
+
+		var stop = self._unrotate || ( self._unrotate = !continuing
+			? function(e) {
+				if (e.clientX) { // in case of a true click
+					self.rotate(null);
+				}
+			}
+			: function( e ) {
+				rotate();
+			});
+
+		// start rotation
+		if ( ms ) {
+			this.element.bind( "tabsshow", rotate );
+			this.anchors.bind( o.event + ".tabs", stop );
+			rotate();
+		// stop rotation
+		} else {
+			clearTimeout( self.rotation );
+			this.element.unbind( "tabsshow", rotate );
+			this.anchors.unbind( o.event + ".tabs", stop );
+			delete this._rotate;
+			delete this._unrotate;
+		}
+
+		return this;
+	}
+});
+
+})( jQuery );
 
 
 /*********************************************** 
@@ -17106,17 +18196,18 @@ $.extend($.ui.multiselect.locale, {
 //@codekit-prepend "../toolbox/toolbox.js";
 //@codekit-prepend "../jquery/jquery.js";
 //@codekit-prepend "../jquery/jquery.json.js";
+//@codekit-prepend "../jquery/jquery.blockUI.js";
 //@codekit-prepend "../jquery/jquery.ba-bbq.js";
 //@codekit-prepend "../jquery/jquery.base64.js";
 //@codekit-prepend "../jquery/jquery.cookie.js";
 //@codekit-prepend "../jquery/jquery.selectboxes.js";
-//@codekit-prepend "../js/md5.js";
 
 //jquery UI
 
 //@codekit-prepend "../jquery/ui/jquery.ui.core.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.widget.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.position.js";
+//@codekit-prepend "../jquery/ui/jquery.ui.tabs.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.datepicker.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.datepicker-es.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.autocomplete.js";
@@ -17125,7 +18216,7 @@ $.extend($.ui.multiselect.locale, {
 //@codekit-prepend "../jquery/ui_multiselect/ui-multiselect-es.js";
 
 
-var _BR = _.isObject(window['_BR']) ? window['_BR'] : {};
+var _BR = (window['_BR'] === Object(window['_BR'])) ? window['_BR'] : {};
 
 _BR.runMetricas = function () {
 	//change and execute Metricas
@@ -17171,7 +18262,12 @@ _BR.runPreloads = function () {
 		if (window._preloads.hasOwnProperty(i)) {
 			var x = window._preloads[i];
 			try {
-				$R.preload(x);
+				if (_.isArray(x)) {
+					$R.preload.apply($R, x);
+				} else {
+					$R.preload(x);
+				}
+
 			} catch (exc) {
 				try {
 					console.log('error preload ' + exc.message);
@@ -17185,7 +18281,16 @@ _BR.runPreloads = function () {
 
 	window._preloads.push = function (x) {
 		try {
-			$R.preload(x);
+			if (arguments.length == 1) {
+				if (_.isArray(x)) {
+					$R.preload.apply($R, x);
+				} else {
+					$R.preload(x);
+				}
+			} else {
+				$R.preload.apply($R, arguments);
+			}
+
 		} catch (exc) {
 			try {
 				console.log('error preload ' + exc.message);
@@ -17198,33 +18303,4 @@ _BR.runPreloads = function () {
 
 }
 
-_BR.getScriptPreloadeds = function () {
-	//change and execute Metricas
-	window._preloads = window._preloads || [];
-	var params = [];
-	for (var i in window._preloads) {
-		if (window._preloads.hasOwnProperty(i)) {
-			var x = window._preloads[i];
-			try {
-				params.push(x);
-			} catch (exc) {
-				try {
-					console.log('error get script preloadeds ' + exc.message);
-				} catch (exc2) {
-					//
-				}
-
-			}
-		}
-	}
-
-	if(_.size(params)){
-		var jsonParams = $.toJSON(params);
-		var md5Params = md5(jsonParams);
-		var queryStringParams = $.param({_loads:params});
-		return _ENV.BASE_URL + "/scripts/gen/" + md5Params + ".js?" + queryStringParams;
-	} else {
-		return false;
-	}
-}
 

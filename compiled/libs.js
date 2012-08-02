@@ -2,17 +2,18 @@
 //@codekit-prepend "../toolbox/toolbox.js";
 //@codekit-prepend "../jquery/jquery.js";
 //@codekit-prepend "../jquery/jquery.json.js";
+//@codekit-prepend "../jquery/jquery.blockUI.js";
 //@codekit-prepend "../jquery/jquery.ba-bbq.js";
 //@codekit-prepend "../jquery/jquery.base64.js";
 //@codekit-prepend "../jquery/jquery.cookie.js";
 //@codekit-prepend "../jquery/jquery.selectboxes.js";
-//@codekit-prepend "../js/md5.js";
 
 //jquery UI
 
 //@codekit-prepend "../jquery/ui/jquery.ui.core.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.widget.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.position.js";
+//@codekit-prepend "../jquery/ui/jquery.ui.tabs.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.datepicker.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.datepicker-es.js";
 //@codekit-prepend "../jquery/ui/jquery.ui.autocomplete.js";
@@ -21,7 +22,7 @@
 //@codekit-prepend "../jquery/ui_multiselect/ui-multiselect-es.js";
 
 
-var _BR = _.isObject(window['_BR']) ? window['_BR'] : {};
+var _BR = (window['_BR'] === Object(window['_BR'])) ? window['_BR'] : {};
 
 _BR.runMetricas = function () {
 	//change and execute Metricas
@@ -67,7 +68,12 @@ _BR.runPreloads = function () {
 		if (window._preloads.hasOwnProperty(i)) {
 			var x = window._preloads[i];
 			try {
-				$R.preload(x);
+				if (_.isArray(x)) {
+					$R.preload.apply($R, x);
+				} else {
+					$R.preload(x);
+				}
+
 			} catch (exc) {
 				try {
 					console.log('error preload ' + exc.message);
@@ -81,7 +87,16 @@ _BR.runPreloads = function () {
 
 	window._preloads.push = function (x) {
 		try {
-			$R.preload(x);
+			if (arguments.length == 1) {
+				if (_.isArray(x)) {
+					$R.preload.apply($R, x);
+				} else {
+					$R.preload(x);
+				}
+			} else {
+				$R.preload.apply($R, arguments);
+			}
+
 		} catch (exc) {
 			try {
 				console.log('error preload ' + exc.message);
@@ -94,33 +109,4 @@ _BR.runPreloads = function () {
 
 }
 
-_BR.getScriptPreloadeds = function () {
-	//change and execute Metricas
-	window._preloads = window._preloads || [];
-	var params = [];
-	for (var i in window._preloads) {
-		if (window._preloads.hasOwnProperty(i)) {
-			var x = window._preloads[i];
-			try {
-				params.push(x);
-			} catch (exc) {
-				try {
-					console.log('error get script preloadeds ' + exc.message);
-				} catch (exc2) {
-					//
-				}
-
-			}
-		}
-	}
-
-	if(_.size(params)){
-		var jsonParams = $.toJSON(params);
-		var md5Params = md5(jsonParams);
-		var queryStringParams = $.param({_loads:params});
-		return _ENV.BASE_URL + "/scripts/gen/" + md5Params + ".js?" + queryStringParams;
-	} else {
-		return false;
-	}
-}
 
