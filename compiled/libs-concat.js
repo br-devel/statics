@@ -1068,7 +1068,9 @@ _.mixin({
 
 		return t.replace(/[^\d]/g, '');
 	},
-	rewrite:function (text) {
+	rewrite:function (text, validchars, separator) {
+		validchars = validchars || 'a-zA-Z0-9';
+		separator = separator || '-';
 
 		var normalize = (function() {
 			var from = "ÃÀÁÄÂÈÉËÊÌÍÏÎÒÓÖÔÙÚÜÛãàáäâèéëêìíïîòóöôùúüûÑñÇç",
@@ -1111,7 +1113,7 @@ _.mixin({
 			}
 		}
 		if (str.charAt(str.length - 1) == separator) str = str.substr(0, str.length - 1);
-		return str.toLowerCase();
+		return str;
 	},
 	newWindow:function (mypage, myname, w, h, features) {
 		if (screen.width) {
