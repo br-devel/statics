@@ -36,6 +36,7 @@ _BR.getScriptPreloadeds = function () {
 				queryStringParams += (first ? '?' : '&');
 				queryStringParams += 'classes[]=' + params[i];
 			}
+			first = false;
 		}
 		var md5Params = md5(params.toString());
 		return _ENV.BASE_URL + "/scripts/gen/" + md5Params + ".js" + queryStringParams;
