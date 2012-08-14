@@ -13658,6 +13658,9 @@ _BR.runPreloads = function () {
 	//change and execute Metricas
 	window._preloads = window._preloads || [];
 
+	//remove duplicated
+	window._preloads = _.uniq(window._preloads);
+
 	for (var i in window._preloads) {
 		if (window._preloads.hasOwnProperty(i)) {
 			var x = window._preloads[i];
