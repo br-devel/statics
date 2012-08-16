@@ -10,11 +10,16 @@ _BR.getScriptPreloadeds = function () {
 	for (var i in window._preloads) {
 		if (window._preloads.hasOwnProperty(i)) {
 			var x = window._preloads[i];
+			var name;
 			try {
 				if (Object.prototype.toString.call(x) == '[object Array]') {
-					params.push(x[0]);
+					name = x[0];
 				} else if (Object.prototype.toString.call(x) == '[object String]') {
-					params.push(x);
+					name = x;
+				}
+
+				if (name && params.indexOf(name) == -1) {
+					params.push(name);
 				}
 			} catch (exc) {
 				try {
@@ -26,7 +31,7 @@ _BR.getScriptPreloadeds = function () {
 			}
 		}
 	}
-	
+
 	if (params.length > 0) {
 		var queryStringParams = '';
 		var first = true;
@@ -34,7 +39,7 @@ _BR.getScriptPreloadeds = function () {
 		for (var j in params) {
 			if (params.hasOwnProperty(j)) {
 				queryStringParams += (first ? '?' : '&');
-				queryStringParams += 'classes[]=' + params[i];
+				queryStringParams += 'classes[]=' + params[j];
 			}
 			first = false;
 		}
