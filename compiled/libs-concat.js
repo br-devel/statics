@@ -13653,6 +13653,43 @@ _BR.runMetricas = function () {
 
 }
 
+_BR.runMetricasPVs = function () {
+	//change and execute Metricas
+	window._metpvs = window._metpvs || [];
+
+	window._metpvs = _.uniq(window._metpvs);
+
+	for (var i in window._metpvs) {
+		if (window._metpvs.hasOwnProperty(i)) {
+			var x = window._metpvs[i];
+			try {
+				$R.pv(x);
+			} catch (exc) {
+				try {
+					console.log('error metpvs ' + exc.message);
+				} catch (exc2) {
+					//
+				}
+
+			}
+		}
+	}
+
+	window._metpvs.push = function (x) {
+		try {
+			$R.pv(x);
+		} catch (exc) {
+			try {
+				console.log('error metpvs ' + exc.message);
+			} catch (exc2) {
+				//
+			}
+		}
+		return Array.prototype.push.apply(this, arguments);
+	}
+
+}
+
 
 _BR.runPreloads = function () {
 	//change and execute Metricas
