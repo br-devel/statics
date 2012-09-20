@@ -272,7 +272,7 @@
 .galleria-container.notouch .galleria-popout:hover,
 .galleria-container.touch .galleria-popout:active { background-color: #DDDDDD}
 
-.galleria-info {
+.galleria-info, .galleria-info-title {
 	color: #666666;
 }
 
