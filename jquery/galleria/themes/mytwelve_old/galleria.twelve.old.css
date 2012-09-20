@@ -1,12 +1,13 @@
-/* Galleria Twelve Theme 2012-04-04 | http://galleria.io/license/ | (c) Aino */
-
-#galleria-loader{height:1px!important}
+/*
+ * Galleria Twelve Theme 2011-06-07
+ * Copyright (c) 2011, Aino
+ */
 
 .galleria-container {
     position: relative;
     overflow: hidden;
     font: 11px/1.4 arial,sans-serif;
-    color: #fff;
+    color: #333333;
 }
 .galleria-container img {
     -moz-user-select: none;
@@ -15,7 +16,7 @@
 }
 .galleria-stage {
     overflow: hidden;
-    background: #000;
+    background: #EEEEEE;
     position: absolute;
     top: 0;
     left: 0;
@@ -29,14 +30,14 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    background: url(bar.png) repeat-x;
+    background: url(bar2.png) repeat-x;
     z-index: 3;
 }
 .galleria-s1,
 .galleria-s2,
 .galleria-s3,
 .galleria-s4 {
-    background: url(separator.png);
+    background: url(separator4.png);
     height: 29px;
     width: 2px;
     position: absolute;
@@ -63,6 +64,12 @@
     z-index: 3;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     filter: alpha(opacity=50);
+}
+.galleria-popout{
+    right: 0 !important;
+}
+.galleria-fullscreen, .galleria-s4{
+    display: none;
 }
 .galleria-thumblink,
 .galleria-fullscreen,
@@ -104,7 +111,7 @@
 .galleria-container.notouch .galleria-play:hover,
 .galleria-container.touch .galleria-play:active,
 .galleria-container.notouch .galleria-popout:hover,
-.galleria-container.touch .galleria-popout:active { background-color: #000 }
+.galleria-container.touch .galleria-popout:active { background-color: #DDDDDD}
 .galleria-thumbnails-container {
     position: absolute;
     top: 0;
@@ -145,18 +152,18 @@
     left: 70px;
     right: 70px;
     bottom: 1px;
-    color: #bbb;
+    color: #666666;
 }
 .galleria-info > *,
 .galleria-info-text > * { display: inline }
 .galleria-info-title {
-    color: #fff;
+    color: #666666;
     font-weight: bold;
     padding: 0 10px;
 }
 .galleria-info-text { padding-left: 10px }
 .galleria-counter {
-    background: url(separator.png) no-repeat 100% 0;
+    background: url(separator4.png) no-repeat 100% 0;
     display: inline-block;
     *display: inline;
     padding-right: 10px;
@@ -172,7 +179,7 @@
     margin: -24px 0 0 -24px;
     z-index: 2;
     display: none;
-    background: #000 url(loader.gif) no-repeat 50% 50%;
+    background: #FFFFFF url(loader_pos) no-repeat 50% 50%;
     opacity: .8;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
     filter: alpha(opacity=80);
@@ -238,7 +245,7 @@
 .galleria-container.notouch .galleria-thumb-nav-right:hover,
 .galleria-container.touch .galleria-thumb-nav-right:active {
     opacity: 1;
-    background-color: #111;
+    background-color: #DDDDDD;
 }
 .galleria-carousel .galleria-thumb-nav-left,
 .galleria-carousel .galleria-thumb-nav-right { display: block }

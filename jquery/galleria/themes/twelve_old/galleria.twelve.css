@@ -1,6 +1,7 @@
-/* Galleria Twelve Theme 2012-04-04 | http://galleria.io/license/ | (c) Aino */
-
-#galleria-loader{height:1px!important}
+/*
+ * Galleria Twelve Theme 2011-06-07
+ * Copyright (c) 2011, Aino
+ */
 
 .galleria-container {
     position: relative;
@@ -63,6 +64,12 @@
     z-index: 3;
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
     filter: alpha(opacity=50);
+}
+.galleria-popout{
+    right: 0 !important;
+}
+.galleria-fullscreen, .galleria-s4{
+    display: none;
 }
 .galleria-thumblink,
 .galleria-fullscreen,
