@@ -13622,20 +13622,23 @@ _BR.runMetricas = function () {
 	//change and execute Metricas
 	window._metricas = window._metricas || [];
 
-	for (var i in window._metricas) {
-		if (window._metricas.hasOwnProperty(i)) {
-			var x = window._metricas[i];
-			try {
-				$.ajax({url:x, cache:false});
-			} catch (exc) {
+	if (window._metricas.push == Array.prototype.push) {
+		for (var i in window._metricas) {
+			if (window._metricas.hasOwnProperty(i)) {
+				var x = window._metricas[i];
 				try {
-					console.log('error metricas ' + exc.message);
-				} catch (exc2) {
-					//
-				}
+					$.ajax({url:x, cache:false});
+				} catch (exc) {
+					try {
+						console.log('error metricas ' + exc.message);
+					} catch (exc2) {
+						//
+					}
 
+				}
 			}
 		}
+
 	}
 
 	window._metricas.push = function (x) {
@@ -13659,18 +13662,20 @@ _BR.runMetricasPVs = function () {
 
 	window._metpvs = _.uniq(window._metpvs);
 
-	for (var i in window._metpvs) {
-		if (window._metpvs.hasOwnProperty(i)) {
-			var x = window._metpvs[i];
-			try {
-				$R.pv(x);
-			} catch (exc) {
+	if (window._metpvs.push == Array.prototype.push) {
+		for (var i in window._metpvs) {
+			if (window._metpvs.hasOwnProperty(i)) {
+				var x = window._metpvs[i];
 				try {
-					console.log('error metpvs ' + exc.message);
-				} catch (exc2) {
-					//
-				}
+					$R.pv(x);
+				} catch (exc) {
+					try {
+						console.log('error metpvs ' + exc.message);
+					} catch (exc2) {
+						//
+					}
 
+				}
 			}
 		}
 	}
@@ -13681,6 +13686,45 @@ _BR.runMetricasPVs = function () {
 		} catch (exc) {
 			try {
 				console.log('error metpvs ' + exc.message);
+			} catch (exc2) {
+				//
+			}
+		}
+		return Array.prototype.push.apply(this, arguments);
+	}
+
+}
+
+_BR.runMetricasEVs = function () {
+	//change and execute Metricas
+	window._metevs = window._metevs || [];
+
+	window._metevs = _.uniq(window._metevs);
+
+	if (window._metevs.push == Array.prototype.push) {
+		for (var i in window._metevs) {
+			if (window._metevs.hasOwnProperty(i)) {
+				var x = window._metevs[i];
+				try {
+					$R.ev(x);
+				} catch (exc) {
+					try {
+						console.log('error metevs ' + exc.message);
+					} catch (exc2) {
+						//
+					}
+
+				}
+			}
+		}
+	}
+
+	window._metevs.push = function (x) {
+		try {
+			$R.ev(x);
+		} catch (exc) {
+			try {
+				console.log('error metevs ' + exc.message);
 			} catch (exc2) {
 				//
 			}
