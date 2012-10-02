@@ -1,6 +1,6 @@
 /* Galleria Twelve Theme 2012-04-04 | http://galleria.io/license/ | (c) Aino */
 
-#galleria-loader{height:1px!important}
+#galleria-loader{height:1px !important; border: none !important; padding: 0 !important; margin: 0 !important;}
 
 .galleria-container {
     position: relative;
