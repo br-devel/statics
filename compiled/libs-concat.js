@@ -13787,4 +13787,19 @@ _BR.runPreloads = function () {
 
 }
 
+_BR.getAllClasses = function () {
+	var classes = {};
+	$('*').each(function () {
+		var cl = $(this).attr('class');
+		if (cl) {
+			$(cl.split(/\s+/)).each(function () {
+				if (this !== '') {
+					classes[this] = classes[this] || 0;
+					classes[this] += 1;
+				}
+			});
+		}
+	});
+	return classes;
+}
 
