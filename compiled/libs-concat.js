@@ -1143,7 +1143,7 @@ _.mixin({
 		if (!required && emailStr == '') {
 			return true;
 		}
-		var checkTLD = 1;
+		var checkTLD = 0;
 		var knownDomsPat = /^(com|net|org|cat|edu|int|mil|gov|biz|aero|name|coop|info|pro|museum)$/;
 		var emailPat = /^(.+)@(.+)$/;
 		var specialChars = "\\(\\)><@,;:\\\\\\\"\\.\\[\\]";
@@ -1164,13 +1164,13 @@ _.mixin({
 		var domain = matchArray[2];
 
 		for (i = 0; i < user.length; i++) {
-			if (user.charCodeAt(i) > 127) {
+			if (user.charCodeAt(i) > 127 && user[i] != 'ñ' && user[i] != 'Ñ') {
 				alert('Email Incorrecto');
 				return false;
 			}
 		}
 		for (i = 0; i < domain.length; i++) {
-			if (domain.charCodeAt(i) > 127) {
+			if (domain.charCodeAt(i) > 127 && user[i] != 'ñ' && user[i] != 'Ñ') {
 				alert('Email Incorrecto');
 				return false;
 			}
