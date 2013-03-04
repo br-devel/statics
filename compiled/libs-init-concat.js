@@ -267,8 +267,8 @@ _BR.getScriptPreloadeds = function () {
 			if (params.hasOwnProperty(j)) {
 				queryStringParams += (first ? '?' : '&');
 				queryStringParams += 'classes[]=' + params[j];
+				first = false;
 			}
-			first = false;
 		}
 		var md5Params = md5(params.toString());
 		return _ENV.BASE_URL + "/scripts/gen/" + md5Params + ".js" + queryStringParams;
