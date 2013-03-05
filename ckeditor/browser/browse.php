@@ -8,7 +8,7 @@ echo '<html><body>';
 if(is_dir($dir)) {
     if ($dh = opendir($dir)) {
         while (($file = readdir($dh)) !== false) {
-            if($file != '.' AND $file != '..' AND in_array(get_file_extension($file),array('jpeg','jpg','png','gif'))) {
+            if($file != '.' AND $file != '..' AND in_array(BRCommons_Util_File::get_file_extension($file),array('jpeg','jpg','png','gif'))) {
                 $files[] = $file;
             }
         }

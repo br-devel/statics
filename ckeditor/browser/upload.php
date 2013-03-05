@@ -7,7 +7,7 @@ $file_name = basename($_FILES['upload']['name']);
 
 echo '<script type="text/javascript">';
 
-$file_type = get_file_format($_FILES['upload']['tmp_name']);
+$file_type = BRCommons_Util_File::get_file_format($_FILES['upload']['tmp_name']);
 
 if(!BRWeb_Auth_Manager::getInstance()->checkPermission('admin_login')) {
     echo 'window.parent.CKEDITOR.tools.callFunction('.$_GET['CKEditorFuncNum'].', "","Permission denied.");';    
